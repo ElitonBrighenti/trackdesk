@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const ticketsRoutes = require('./routes/tickets')
+const colunasRoutes = require('./routes/colunas')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -17,6 +18,7 @@ app.get('/health', (_req, res) => {
 
 // Rotas
 app.use('/api/tickets', ticketsRoutes)
+app.use('/api/colunas', colunasRoutes)
 
 // Start
 app.listen(PORT, () => {
