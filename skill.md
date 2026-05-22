@@ -61,9 +61,11 @@ trackdesk/
 │   │   ├── config/
 │   │   │   └── supabase.js
 │   │   ├── controllers/
-│   │   │   └── ticketsController.js
+│   │   │   ├── ticketsController.js
+│   │   │   └── colunasController.js
 │   │   ├── routes/
-│   │   │   └── tickets.js
+│   │   │   ├── tickets.js
+│   │   │   └── colunas.js
 │   │   └── index.js
 │   ├── .env
 │   └── package.json
@@ -103,12 +105,30 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 | descricao    | text          |                                   |
 | categoria    | text          |                                   |
 | prioridade   | text          | Baixa / Média / Alta / Urgente    |
-| status       | text          | Backlog / Triagem / Em análise / Em andamento / Resolvido |
+| status       | text          | Referencia o `nome` de uma coluna da tabela `colunas` |
 | responsavel  | text          | nullable                          |
 | nome         | text          | nome do cliente                   |
 | contato      | text          | telefone whatsapp                 |
 | email        | text          | nullable                          |
 | origem       | text          | default 'whatsapp'                |
+
+### Tabela `colunas`
+| Coluna     | Tipo        | Observação                              |
+|------------|-------------|-----------------------------------------|
+| id         | int8        | PK gerada pelo Supabase                 |
+| nome       | text        | Nome da coluna exibido no Kanban        |
+| ordem      | int         | Posição da coluna da esquerda p/ direita |
+| cor        | text        | Hex da cor do header, default `#6B7280` |
+| created_at | timestamptz | Gerado automaticamente                  |
+
+**Dados iniciais inseridos:**
+```sql
+INSERT INTO public.colunas (nome, ordem) VALUES
+  ('Novo', 1),
+  ('Em análise', 2),
+  ('Em andamento', 3),
+  ('Resolvido', 4);
+```
 
 ### Tabela `clientes`
 | Coluna     | Tipo        | Observação   |
@@ -160,12 +180,16 @@ O n8n envia este payload via `POST /api/tickets`. O backend gera o `sessao` (UUI
 
 ## ENDPOINTS DO BACKEND
 
-| Método | Rota                        | Descrição                        |
-|--------|-----------------------------|----------------------------------|
-| GET    | /health                     | Health check da API              |
-| POST   | /api/tickets                | Cria ticket (chamado pelo n8n)   |
-| GET    | /api/tickets                | Lista todos os tickets           |
-| PATCH  | /api/tickets/:id/status     | Atualiza status (Kanban drag)    |
+| Método | Rota                        | Descrição                                        |
+|--------|-----------------------------|--------------------------------------------------|
+| GET    | /health                     | Health check da API                              |
+| POST   | /api/tickets                | Cria ticket (chamado pelo n8n)                   |
+| GET    | /api/tickets                | Lista todos os tickets                           |
+| PATCH  | /api/tickets/:id/status     | Atualiza status (Kanban drag)                    |
+| GET    | /api/colunas                | Lista colunas ordenadas por `ordem`              |
+| POST   | /api/colunas                | Cria nova coluna                                 |
+| PATCH  | /api/colunas/:id            | Edita nome, cor ou ordem de uma coluna           |
+| DELETE | /api/colunas/:id            | Remove coluna (bloqueia se tiver tickets ativos) |
 
 ---
 
@@ -181,7 +205,7 @@ const criarTicket = async (req, res) => {
     descricao: payload.descricao,
     categoria: payload.categoria,
     prioridade: payload.prioridade,
-    status: payload.status ?? 'Backlog',
+    status: payload.status ?? 'Novo', // deve referenciar o nome de uma coluna existente
     responsavel: payload.responsavel ?? null,
     nome: payload.nome,
     contato: payload.contato,
@@ -190,6 +214,17 @@ const criarTicket = async (req, res) => {
   // created_at é gerado automaticamente pelo Supabase
   // data_criacao do payload do n8n é ignorada propositalmente
 }
+```
+
+## LÓGICA DO BACKEND — COLUNAS
+
+```js
+// listarColunas — ordenado por campo ordem ASC
+// criarColuna — recebe nome, ordem, cor (opcional)
+// atualizarColuna — aceita nome, ordem e/ou cor
+// deletarColuna — verifica tickets ativos antes de deletar
+//   se existir ticket com status === nome da coluna → retorna 400
+//   caso contrário → deleta e retorna 200
 ```
 
 ---
@@ -248,10 +283,14 @@ Configurações
 - Barra de status no rodapé: latência da API, status dos nós
 
 ### Kanban (`/kanban`)
-- Colunas: Novo | Em análise | Em andamento
-- Cada card exibe: badge de prioridade, número do ticket (#W-XXXX), título, resumo da IA, avatar do responsável, tempo
-- Contador de tickets por coluna no header da coluna
+- **Colunas dinâmicas** — busca as colunas via `GET /api/colunas` ordenadas pelo campo `ordem`
+- Cada coluna exibe os tickets cujo `status` é igual ao `nome` da coluna
+- Cada card exibe: badge de prioridade, número do ticket (`#TKT-{id}`), título, box azul claro com label "RESUMO DA IA" e a descrição, avatar com iniciais do responsável/cliente, tempo relativo
+- Contador de tickets por coluna no header
+- Botão "+ Adicionar coluna" no final do board
+- Clique no nome da coluna para editar inline
 - Drag and drop entre colunas chama `PATCH /api/tickets/:id/status`
+- Hover nos cards com sombra suave
 
 ### Login (`/login`)
 - Layout split: lado esquerdo azul com texto da marca + métricas, lado direito com formulário

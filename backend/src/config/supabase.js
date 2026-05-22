@@ -8,9 +8,9 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1)
 }
 
-const schema = process.env.NODE_ENV === 'production' ? 'public' : 'development'
-const supabase = createClient(supabaseUrl, supabaseKey, { db: { schema } })
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-console.log(`[TrackDesk] Supabase conectado na schema: ${schema}`)
+console.log('[TrackDesk] Supabase conectado na schema: public')
 
 module.exports = supabase
+
