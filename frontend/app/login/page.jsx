@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -7,12 +8,29 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock } from 'lucide-react'
 
+const MOCK_USER = {
+  email: 'admin@trackdesk.com',
+  senha: 'admin123',
+  nome: 'Julian Rossi',
+  cargo: 'Arquiteto Sênior'
+}
+
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    router.push('/dashboard')
+    setError('')
+
+    if (email === MOCK_USER.email && password === MOCK_USER.senha) {
+      localStorage.setItem('trackdesk_user', JSON.stringify(MOCK_USER))
+      router.push('/dashboard')
+    } else {
+      setError('E-mail ou senha incorretos')
+    }
   }
 
   return (
@@ -106,6 +124,8 @@ export default function LoginPage() {
                   type="email"
                   placeholder="nome@empresa.com"
                   className="pl-9 h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -127,17 +147,24 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   className="pl-9 h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full h-11 bg-[#1E4FD8] hover:bg-[#1a45c0] text-white font-medium rounded-lg flex items-center justify-center gap-2 mt-2"
-            >
-              Entrar <span className="text-lg leading-none">→</span>
-            </Button>
+            <div className="space-y-2 pt-2">
+              <Button
+                type="submit"
+                className="w-full h-11 bg-[#1E4FD8] hover:bg-[#1a45c0] text-white font-medium rounded-lg flex items-center justify-center gap-2"
+              >
+                Entrar <span className="text-lg leading-none">→</span>
+              </Button>
+              {error && (
+                <p className="text-sm text-red-500 text-center font-medium">{error}</p>
+              )}
+            </div>
           </form>
 
           <div className="relative my-8">

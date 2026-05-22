@@ -2,7 +2,22 @@
 
 import { Search, Bell, Clock, HelpCircle } from 'lucide-react'
 
-export default function TopBar() {
+export default function TopBar({ user }) {
+  // Helpers para o fallback de nome e iniciais
+  const nome = user?.nome || 'Usuário'
+  const cargo = user?.cargo || 'Membro'
+  
+  const getInitials = (name) => {
+    if (!name) return 'U'
+    const parts = name.split(' ')
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const initials = getInitials(nome)
+
   return (
     <header className="fixed top-0 left-[220px] right-0 h-[56px] bg-white border-b border-gray-100 flex items-center justify-between px-6 z-30">
       {/* Campo de busca */}
@@ -45,14 +60,14 @@ export default function TopBar() {
         <div className="flex items-center gap-3">
           <div className="text-right">
             <p className="text-sm font-semibold text-gray-900 leading-tight">
-              Julian Rosa
+              {nome}
             </p>
             <p className="text-[11px] text-gray-400 uppercase tracking-wide leading-tight">
-              Arquiteto Sênior
+              {cargo}
             </p>
           </div>
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1E4FD8] to-[#6366F1] flex items-center justify-center text-white text-sm font-semibold">
-            JR
+            {initials}
           </div>
         </div>
       </div>
