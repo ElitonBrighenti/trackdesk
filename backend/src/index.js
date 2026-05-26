@@ -8,7 +8,16 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 // Middlewares
-app.use(cors())
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'https://trackdesk-front.netlify.app'
+  ],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 // Health check
