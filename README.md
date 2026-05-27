@@ -31,14 +31,14 @@ trackdesk/
 cd backend
 cp .env.example .env       # preencha SUPABASE_URL e SUPABASE_KEY
 npm install
-npm run dev                 # roda na porta 3001
+npm run dev                 # roda na porta 3002
 ```
 
 ### 2. Frontend
 
 ```bash
 cd frontend
-cp .env.example .env.local  # confirme NEXT_PUBLIC_API_URL=http://localhost:3001
+cp .env.example .env.local  # confirme NEXT_PUBLIC_API_URL=http://localhost:3002
 npm install
 npm run dev                 # roda na porta 3000
 ```
