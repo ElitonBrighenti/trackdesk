@@ -18,14 +18,17 @@ const getRelativeTime = (dateString) => {
 // Cores baseadas na prioridade
 const getPriorityStyles = (prioridade) => {
   const p = prioridade?.toLowerCase()
-  if (p === 'urgente' || p === 'alta') {
-    return 'bg-orange-100 text-orange-800'
+  if (p === 'urgente') {
+    return 'bg-[#FEE2E2] text-[#DC2626]'
+  }
+  if (p === 'alta') {
+    return 'bg-[#FEF3C7] text-[#D97706]'
   }
   if (p === 'média' || p === 'media') {
-    return 'bg-purple-100 text-purple-800'
+    return 'bg-[#DBEAFE] text-[#2563EB]'
   }
   // Baixa / Normal
-  return 'bg-blue-100 text-blue-800'
+  return 'bg-[#F3F4F6] text-[#6B7280]'
 }
 
 // Helper para pegar as iniciais do nome
