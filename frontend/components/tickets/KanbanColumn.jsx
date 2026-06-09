@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MoreHorizontal } from 'lucide-react'
+import { Droppable } from '@hello-pangea/dnd'
 import TicketCard from './TicketCard'
 import { atualizarColuna } from '@/lib/api'
 
@@ -67,20 +68,29 @@ export default function KanbanColumn({ coluna, tickets, onColumnUpdate }) {
         </button>
       </div>
 
-      {/* Linha separadora superior das colunas (Opcional visual) */}
-      {/* (O Figma não mostra linha, o fundo é continuo) */}
-
       {/* Lista de Tickets (Scrollable) */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-3 custom-scrollbar">
-        {tickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} />
-        ))}
-        {tickets.length === 0 && (
-          <div className="h-20 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center">
-            <span className="text-xs text-gray-400 font-medium">Solte cards aqui</span>
+      <Droppable droppableId={coluna.nome}>
+        {(provided, snapshot) => (
+          <div
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            className={`flex-1 overflow-y-auto px-3 pb-3 space-y-3 custom-scrollbar transition-colors ${
+              snapshot.isDraggingOver ? 'bg-gray-100' : ''
+            }`}
+          >
+            {tickets.map((ticket, index) => (
+              <TicketCard key={ticket.id} ticket={ticket} index={index} />
+            ))}
+            {provided.placeholder}
+            
+            {tickets.length === 0 && !snapshot.isDraggingOver && (
+              <div className="h-20 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center">
+                <span className="text-xs text-gray-400 font-medium">Solte cards aqui</span>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </Droppable>
     </div>
   )
 }
