@@ -6,7 +6,7 @@ import { Droppable } from '@hello-pangea/dnd'
 import TicketCard from './TicketCard'
 import { atualizarColuna } from '@/lib/api'
 
-export default function KanbanColumn({ coluna, tickets, onColumnUpdate }) {
+export default function KanbanColumn({ coluna, tickets, onColumnUpdate, onSelectTicket }) {
   const [isEditing, setIsEditing] = useState(false)
   const [nome, setNome] = useState(coluna.nome)
   const [loading, setLoading] = useState(false)
@@ -79,7 +79,12 @@ export default function KanbanColumn({ coluna, tickets, onColumnUpdate }) {
             }`}
           >
             {tickets.map((ticket, index) => (
-              <TicketCard key={ticket.id} ticket={ticket} index={index} />
+              <TicketCard 
+                key={ticket.id} 
+                ticket={ticket} 
+                index={index} 
+                onClick={() => onSelectTicket(ticket)}
+              />
             ))}
             {provided.placeholder}
             

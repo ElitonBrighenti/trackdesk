@@ -41,9 +41,9 @@ const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase()
 }
 
-export default function TicketCard({ ticket, index }) {
+export default function TicketCard({ ticket, index, onClick }) {
   const handleCardClick = () => {
-    console.log(`[TicketCard] Clicou no ticket ID: ${ticket.id}`)
+    if (onClick) onClick()
   }
 
   return (
