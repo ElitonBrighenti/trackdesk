@@ -1,18 +1,40 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { signUp, signInWithGoogle } from '@/lib/auth'
 
 export default function CadastroPage() {
   const router = useRouter()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    router.push('/dashboard')
+    setError('')
+    setSuccess('')
+
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.')
+      return
+    }
+
+    const { error } = await signUp(email, password)
+    
+    if (error) {
+      setError(error.message)
+    } else {
+      setSuccess('Verifique seu e-mail para confirmar o cadastro')
+    }
   }
 
   return (
@@ -102,6 +124,8 @@ export default function CadastroPage() {
                 id="name"
                 placeholder="Seu nome"
                 className="h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
@@ -115,6 +139,8 @@ export default function CadastroPage() {
                 type="email"
                 placeholder="nome@empresa.com"
                 className="h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -129,6 +155,8 @@ export default function CadastroPage() {
                   type="password"
                   placeholder="••••••••"
                   className="h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
@@ -141,6 +169,8 @@ export default function CadastroPage() {
                   type="password"
                   placeholder="••••••••"
                   className="h-11 border-gray-200 focus:border-[#1E4FD8] focus:ring-[#1E4FD8] rounded-lg"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
@@ -152,6 +182,9 @@ export default function CadastroPage() {
                 Eu concordo com os <Link href="#" className="font-semibold text-[#1E4FD8] hover:underline">Termos de Uso</Link> e a <Link href="#" className="font-semibold text-[#1E4FD8] hover:underline">Política de Privacidade</Link> do TrackDesk.
               </Label>
             </div>
+
+            {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
+            {success && <p className="text-sm text-green-600 font-medium text-center">{success}</p>}
 
             <Button
               type="submit"
@@ -174,6 +207,7 @@ export default function CadastroPage() {
             <Button
               type="button"
               variant="outline"
+              onClick={signInWithGoogle}
               className="h-11 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">

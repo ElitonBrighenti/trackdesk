@@ -12,13 +12,16 @@ export default function DashboardLayout({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loggedUser = getUser()
-    if (!loggedUser) {
-      router.push('/login')
-    } else {
-      setUser(loggedUser)
-      setLoading(false)
+    async function checkAuth() {
+      const loggedUser = await getUser()
+      if (!loggedUser) {
+        router.push('/login')
+      } else {
+        setUser(loggedUser)
+        setLoading(false)
+      }
     }
+    checkAuth()
   }, [router])
 
   if (loading) {

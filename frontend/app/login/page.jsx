@@ -7,13 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, Lock } from 'lucide-react'
-
-const MOCK_USER = {
-  email: 'admin@trackdesk.com',
-  senha: 'admin123',
-  nome: 'Julian Rossi',
-  cargo: 'Arquiteto Sênior'
-}
+import { signInWithEmail, signInWithGoogle } from '@/lib/auth'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -21,15 +15,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (email === MOCK_USER.email && password === MOCK_USER.senha) {
-      localStorage.setItem('trackdesk_user', JSON.stringify(MOCK_USER))
-      router.push('/dashboard')
-    } else {
+    const { error } = await signInWithEmail(email, password)
+    
+    if (error) {
       setError('E-mail ou senha incorretos')
+    } else {
+      router.push('/dashboard')
     }
   }
 
@@ -179,6 +174,7 @@ export default function LoginPage() {
           <Button
             type="button"
             variant="outline"
+            onClick={signInWithGoogle}
             className="w-full h-11 border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
