@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { DragDropContext } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
+import TicketModal from './TicketModal'
 import { getColunas, getTickets, criarColuna, updateTicketStatus } from '@/lib/api'
 
 export default function KanbanBoard({ initialColunas, initialTickets, loading, error, onRetry }) {
   const [colunas, setColunas] = useState([])
   const [tickets, setTickets] = useState([])
+  const [selectedTicket, setSelectedTicket] = useState(null)
 
   // Estado para adicionar nova coluna
   const [isAddingColumn, setIsAddingColumn] = useState(false)
@@ -97,47 +99,65 @@ export default function KanbanBoard({ initialColunas, initialTickets, loading, e
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex h-[calc(100vh-180px)] gap-6 overflow-x-auto pb-4 custom-scrollbar">
-        {/* Colunas Existentes */}
-        {colunas.map((coluna) => {
-          const columnTickets = tickets.filter((t) => t.status === coluna.nome)
-          return (
-            <KanbanColumn
-              key={coluna.id}
-              coluna={coluna}
-              tickets={columnTickets}
-              onColumnUpdate={handleColumnUpdate}
-            />
-          )
-        })}
-
-        {/* Adicionar Nova Coluna */}
-        <div className="w-[320px] min-w-[320px] flex-shrink-0">
-          {isAddingColumn ? (
-            <div className="bg-[#F8F9FA] rounded-xl p-3 border border-gray-100 flex items-center gap-2">
-              <input
-                type="text"
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                onBlur={handleAddColumnSubmit}
-                onKeyDown={handleAddColumnSubmit}
-                autoFocus
-                placeholder="Nome da coluna"
-                className="text-sm font-bold text-gray-900 bg-white border border-[#1E4FD8] rounded px-3 py-2 w-full outline-none"
+    <>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex h-[calc(100vh-180px)] gap-6 overflow-x-auto pb-4 custom-scrollbar">
+          {/* Colunas Existentes */}
+          {colunas.map((coluna) => {
+            const columnTickets = tickets.filter((t) => t.status === coluna.nome)
+            return (
+              <KanbanColumn
+                key={coluna.id}
+                coluna={coluna}
+                tickets={columnTickets}
+                onColumnUpdate={handleColumnUpdate}
+                onSelectTicket={setSelectedTicket}
               />
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsAddingColumn(true)}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-900 bg-transparent hover:bg-gray-100 w-full rounded-xl p-4 transition-colors border border-transparent hover:border-gray-200"
-            >
-              <Plus size={20} />
-              <span className="text-sm font-bold tracking-wide">Adicionar Coluna</span>
-            </button>
-          )}
+            )
+          })}
+
+          {/* Adicionar Nova Coluna */}
+          <div className="w-[320px] min-w-[320px] flex-shrink-0">
+            {isAddingColumn ? (
+              <div className="bg-[#F8F9FA] rounded-xl p-3 border border-gray-100 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  onBlur={handleAddColumnSubmit}
+                  onKeyDown={handleAddColumnSubmit}
+                  autoFocus
+                  placeholder="Nome da coluna"
+                  className="text-sm font-bold text-gray-900 bg-white border border-[#1E4FD8] rounded px-3 py-2 w-full outline-none"
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAddingColumn(true)}
+                className="flex items-center gap-2 text-gray-500 hover:text-gray-900 bg-transparent hover:bg-gray-100 w-full rounded-xl p-4 transition-colors border border-transparent hover:border-gray-200"
+              >
+                <Plus size={20} />
+                <span className="text-sm font-bold tracking-wide">Adicionar Coluna</span>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    </DragDropContext>
+      </DragDropContext>
+      
+      <TicketModal 
+        ticket={selectedTicket} 
+        colunas={colunas}
+        onTicketUpdate={(id, novoStatus) => {
+          setTickets((prev) =>
+            prev.map((t) =>
+              t.id === id ? { ...t, status: novoStatus } : t
+            )
+          )
+          // Atualiza também o selectedTicket localmente para refletir na UI do Modal
+          setSelectedTicket((prev) => ({ ...prev, status: novoStatus }))
+        }}
+        onClose={() => setSelectedTicket(null)} 
+      />
+    </>
   )
 }

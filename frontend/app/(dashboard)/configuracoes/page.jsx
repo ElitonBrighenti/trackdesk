@@ -26,15 +26,16 @@ export default function ConfiguracoesPage() {
   })
   const [showToast, setShowToast] = useState(false)
 
-  const carregarUsuario = () => {
-    const usr = getUser()
+  const carregarUsuario = async () => {
+    const usr = await getUser()
     if (usr) {
       setUser(usr)
+      const nome = usr?.user_metadata?.full_name || usr?.user_metadata?.name || usr?.email?.split('@')[0] || ''
       setFormData({
-        nome: usr.nome || '',
+        nome: nome,
         email: usr.email || '',
         empresa: 'TrackDesk Inc.',
-        cargo: usr.cargo || ''
+        cargo: usr?.user_metadata?.cargo || ''
       })
     }
   }
@@ -66,6 +67,8 @@ export default function ConfiguracoesPage() {
   // Data atual formatada (Membro desde)
   const today = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
   const memberSince = today.charAt(0).toUpperCase() + today.slice(1)
+  
+  const nomeExibicao = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário'
 
   return (
     <div className="max-w-5xl">
@@ -83,9 +86,9 @@ export default function ConfiguracoesPage() {
           {/* Card Perfil */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col items-center text-center">
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#1E4FD8] to-blue-400 flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
-              {getInitials(user.nome)}
+              {getInitials(nomeExibicao)}
             </div>
-            <h2 className="text-lg font-bold text-gray-900">{user.nome}</h2>
+            <h2 className="text-lg font-bold text-gray-900">{nomeExibicao}</h2>
             <p className="text-sm text-gray-500 mb-6">{user.email}</p>
             
             <div className="w-full border-t border-gray-100 pt-4 flex flex-col gap-3 text-left">

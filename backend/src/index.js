@@ -30,6 +30,10 @@ app.use('/api/tickets', ticketsRoutes)
 app.use('/api/colunas', colunasRoutes)
 
 // Start
-app.listen(PORT, () => {
-  console.log(`[TrackDesk] Backend rodando na porta ${PORT}`)
-})
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`[TrackDesk] Backend rodando na porta ${PORT}`)
+  })
+}
+
+module.exports = app

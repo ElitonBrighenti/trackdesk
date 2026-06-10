@@ -12,6 +12,10 @@ const criarTicket = async (req, res) => {
   try {
     const payload = req.body
 
+    if (!payload.titulo) {
+      return res.status(400).json({ error: 'Campo "titulo" é obrigatório' })
+    }
+
     const ticket = {
       sessao: randomUUID(),
       origem: 'whatsapp',

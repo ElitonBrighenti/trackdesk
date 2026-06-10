@@ -1,11 +1,14 @@
 'use client'
 
-import { Search, Bell, Clock, HelpCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Search, Bell, Clock, HelpCircle, LogOut } from 'lucide-react'
+import { logout } from '@/lib/auth'
 
 export default function TopBar({ user }) {
+  const router = useRouter()
   // Helpers para o fallback de nome e iniciais
-  const nome = user?.nome || 'Usuário'
-  const cargo = user?.cargo || 'Membro'
+  const nome = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário'
+  const cargo = user?.user_metadata?.cargo || 'Membro'
   
   const getInitials = (name) => {
     if (!name) return 'U'
@@ -69,6 +72,16 @@ export default function TopBar({ user }) {
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1E4FD8] to-[#6366F1] flex items-center justify-center text-white text-sm font-semibold">
             {initials}
           </div>
+          <button 
+            onClick={async () => {
+              await logout()
+              router.push('/login')
+            }}
+            className="ml-2 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Sair"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </header>
