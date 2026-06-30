@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plug, Save, Webhook, Lock } from 'lucide-react'
-import { getWebhooks, atualizarWebhook } from '@/lib/api'
+import { Plug, Save, Webhook, Lock, Play } from 'lucide-react'
+import { getWebhooks, atualizarWebhook, testarWebhook } from '@/lib/api'
 
 export default function IntegracoesPage() {
   const [url, setUrl] = useState('')
   const [ativo, setAtivo] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [feedback, setFeedback] = useState(null)
 
   useEffect(() => {
     getWebhooks().then(data => {
@@ -27,12 +29,32 @@ export default function IntegracoesPage() {
   const handleSave = async () => {
     if (!url.trim()) return
     setSaving(true)
+    setFeedback(null)
     try {
       await atualizarWebhook('ticket_resolvido', { url, ativo })
+      setFeedback({ type: 'success', message: 'Configurações salvas!' })
     } catch (err) {
       console.error(err)
+      setFeedback({ type: 'error', message: 'Erro ao salvar.' })
     } finally {
       setSaving(false)
+      setTimeout(() => setFeedback(null), 3000)
+    }
+  }
+
+  const handleTest = async () => {
+    if (!url.trim()) return
+    setTesting(true)
+    setFeedback(null)
+    try {
+      await testarWebhook('ticket_resolvido', url)
+      setFeedback({ type: 'success', message: 'Teste enviado com sucesso!' })
+    } catch (err) {
+      console.error(err)
+      setFeedback({ type: 'error', message: 'Erro ao conectar com a URL.' })
+    } finally {
+      setTesting(false)
+      setTimeout(() => setFeedback(null), 4000)
     }
   }
 
@@ -47,6 +69,12 @@ export default function IntegracoesPage() {
           <p className="text-gray-500 text-sm mt-1">Conecte o TrackDesk a serviços externos via Webhooks.</p>
         </div>
       </div>
+
+      {feedback && (
+        <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+          {feedback.message}
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Gatilho 1: Ticket Resolvido (Ativo) */}
@@ -86,6 +114,16 @@ export default function IntegracoesPage() {
                 disabled={loading}
               />
             </div>
+            
+            <button 
+              onClick={handleTest}
+              disabled={testing || loading || !url.trim()}
+              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+            >
+              <Play size={16} className={testing ? "animate-pulse" : ""} />
+              {testing ? 'Testando...' : 'Testar'}
+            </button>
+
             <button 
               onClick={handleSave}
               disabled={saving || loading || !url.trim()}

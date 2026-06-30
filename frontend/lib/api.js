@@ -33,3 +33,12 @@ export const atualizarWebhook = (evento, dados) => fetch(`${API_URL}/api/webhook
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(dados)
 }).then(r => r.json())
+
+export const testarWebhook = (evento, url) => fetch(`${API_URL}/api/webhooks/${evento}/test`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url })
+}).then(r => {
+  if (!r.ok) throw new Error('Erro ao disparar teste no destino')
+  return r.json()
+})
