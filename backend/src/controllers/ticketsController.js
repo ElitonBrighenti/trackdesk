@@ -93,34 +93,42 @@ const atualizarStatus = async (req, res) => {
     }
 
     // Webhook n8n para status Resolvido (disparo assíncrono/fire-and-forget)
-    if (status === 'Resolvido' && process.env.N8N_WEBHOOK_RESOLVIDO) {
-      const payload = {
-        evento: 'ticket_resolvido',
-        ticket: {
-          id: data.id,
-          sessao: data.sessao,
-          origem: data.origem,
-          status: data.status,
-          titulo: data.titulo,
-          descricao: data.descricao,
-          prioridade: data.prioridade,
-          categoria: data.categoria
-        },
-        cliente: {
-          nome: data.nome,
-          telefone: data.contato,
-          email: data.email
-        }
-      }
+    if (status === 'Resolvido') {
+      const { data: webhook } = await supabase
+        .from('webhooks')
+        .select('url, ativo')
+        .eq('evento', 'ticket_resolvido')
+        .single()
 
-      if (typeof fetch !== 'undefined') {
-        fetch(process.env.N8N_WEBHOOK_RESOLVIDO, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-        .then(() => console.log(`[Webhook] Disparado para n8n: Ticket ${data.id}`))
-        .catch(e => console.error(`[Webhook Erro] falha ao enviar pro n8n: ${e.message}`))
+      if (webhook && webhook.ativo && webhook.url) {
+        const payload = {
+          evento: 'ticket_resolvido',
+          ticket: {
+            id: data.id,
+            sessao: data.sessao,
+            origem: data.origem,
+            status: data.status,
+            titulo: data.titulo,
+            descricao: data.descricao,
+            prioridade: data.prioridade,
+            categoria: data.categoria
+          },
+          cliente: {
+            nome: data.nome,
+            telefone: data.contato,
+            email: data.email
+          }
+        }
+
+        if (typeof fetch !== 'undefined') {
+          fetch(webhook.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+          .then(() => console.log(`[Webhook] Disparado para n8n: Ticket ${data.id}`))
+          .catch(e => console.error(`[Webhook Erro] falha ao enviar pro n8n: ${e.message}`))
+        }
       }
     }
 

@@ -3,6 +3,7 @@ const express = require('express')
 const cors = require('cors')
 const ticketsRoutes = require('./routes/tickets')
 const colunasRoutes = require('./routes/colunas')
+const webhooksRoutes = require('./routes/webhooks')
 
 const app = express()
 const PORT = process.env.PORT || 3001
