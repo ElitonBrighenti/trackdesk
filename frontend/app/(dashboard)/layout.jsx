@@ -6,6 +6,8 @@ import { getUser } from '@/lib/auth'
 import Sidebar from '@/components/layout/Sidebar'
 import TopBar from '@/components/layout/TopBar'
 
+import { Toaster } from 'react-hot-toast'
+
 export default function DashboardLayout({ children }) {
   const router = useRouter()
   const [user, setUser] = useState(null)
@@ -30,6 +32,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
+      <Toaster position="bottom-right" />
       <Sidebar />
       <TopBar user={user} />
 

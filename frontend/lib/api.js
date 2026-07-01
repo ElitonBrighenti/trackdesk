@@ -26,10 +26,37 @@ export const deletarColuna = (id) => fetch(`${API_URL}/api/colunas/${id}`, {
   method: 'DELETE'
 }).then(r => r.json())
 
-export const getWebhooks = () => fetch(`${API_URL}/api/webhooks`).then(r => r.json())
+export const getWebhooks = () => fetch(`${API_URL}/api/webhooks`).then(async r => {
+  if (!r.ok) {
+    throw new Error('Erro ao buscar webhooks')
+  }
+  return r.json()
+})
 
 export const atualizarWebhook = (evento, dados) => fetch(`${API_URL}/api/webhooks/${evento}`, {
   method: 'PUT',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(dados)
-}).then(r => r.json())
+}).then(async r => {
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.error || 'Erro ao atualizar webhook')
+  }
+  return r.json()
+})
+
+export const testarWebhook = (evento, url) => fetch(`${API_URL}/api/webhooks/${evento}/test`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url })
+}).then(r => {
+  if (!r.ok) throw new Error('Erro ao disparar teste no destino')
+  return r.json()
+})
+
+export const getWebhookLogs = (evento) => fetch(`${API_URL}/api/webhooks/${evento}/logs`).then(async r => {
+  if (!r.ok) {
+    throw new Error('Erro ao buscar logs')
+  }
+  return r.json()
+})

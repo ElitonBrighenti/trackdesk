@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { DragDropContext } from '@hello-pangea/dnd'
+import toast from 'react-hot-toast'
 import KanbanColumn from './KanbanColumn'
 import TicketModal from './TicketModal'
 import { getColunas, getTickets, criarColuna, updateTicketStatus } from '@/lib/api'
@@ -73,7 +74,14 @@ export default function KanbanBoard({ initialColunas, initialTickets, loading, e
     )
 
     try {
-      await updateTicketStatus(ticketId, novoStatus)
+      const res = await updateTicketStatus(ticketId, novoStatus)
+      if (res && res.webhook_result) {
+        if (res.webhook_result.success) {
+          toast.success('Cliente notificado com sucesso')
+        } else {
+          toast.error('Erro ao notificar cliente')
+        }
+      }
     } catch (err) {
       console.error('Falha ao mover ticket:', err)
       // Reverte em caso de falha da API
