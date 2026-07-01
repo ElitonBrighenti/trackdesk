@@ -14,7 +14,7 @@ const corsOptions = {
     'http://localhost:3000',
     'https://trackdesk-front.netlify.app'
   ],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }
 
@@ -29,6 +29,7 @@ app.get('/health', (_req, res) => {
 // Rotas
 app.use('/api/tickets', ticketsRoutes)
 app.use('/api/colunas', colunasRoutes)
+app.use('/api/webhooks', webhooksRoutes)
 
 // Start
 if (require.main === module) {
