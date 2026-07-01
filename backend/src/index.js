@@ -30,6 +30,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/tickets', ticketsRoutes)
 app.use('/api/colunas', colunasRoutes)
 app.use('/api/webhooks', webhooksRoutes)
+app.use('/api/profiles', require('./routes/profiles'))
 
 // Start
 if (require.main === module) {

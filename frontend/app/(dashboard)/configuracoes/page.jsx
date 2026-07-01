@@ -181,30 +181,56 @@ export default function ConfiguracoesPage() {
           </div>
 
           {/* Cards Inferiores Side-by-Side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Segurança */}
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                <Shield size={20} className="text-purple-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            
+            {/* Equipe (Apenas Admin/Gestor) */}
+            {(user.role === 'admin' || user.role === 'gestor') && (
+              <div 
+                onClick={() => window.location.href = '/configuracoes/equipe'}
+                className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                    <ShieldCheck size={20} className="text-[#1E4FD8]" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">Equipe e Acessos</h3>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Gerencie os membros do seu workspace
+                  </p>
+                </div>
+                <span className="text-sm font-semibold text-[#1E4FD8] group-hover:underline">
+                  Ver membros &rarr;
+                </span>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">Segurança</h3>
-              <p className="text-xs text-gray-500 mb-3">
-                Atualize sua senha e revise os dispositivos
-              </p>
+            )}
+
+            {/* Segurança */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
+                  <Shield size={20} className="text-purple-600" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Segurança</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Atualize sua senha e revise sessões
+                </p>
+              </div>
               <span className="text-sm font-semibold text-purple-600 group-hover:underline">
                 Configurar segurança &rarr;
               </span>
             </div>
 
             {/* Notificações */}
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-3">
-                <Bell size={20} className="text-orange-600" />
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between">
+              <div>
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-3">
+                  <Bell size={20} className="text-orange-600" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Notificações</h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  Escolha como e quando receber alertas
+                </p>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">Notificações</h3>
-              <p className="text-xs text-gray-500 mb-3">
-                Escolha como e quando receber alertas
-              </p>
               <span className="text-sm font-semibold text-orange-600 group-hover:underline">
                 Gerenciar alertas &rarr;
               </span>

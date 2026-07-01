@@ -17,13 +17,23 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/chamados', label: 'Chamados', icon: Ticket },
   { href: '/kanban', label: 'Kanban', icon: Kanban },
-  { href: '/integracoes', label: 'Integrações', icon: Plug },
+  { href: '/integracoes', label: 'Integrações', icon: Plug, adminOnly: true },
   { href: '/base-conhecimento', label: 'Base de Conhecimento', icon: BookOpen },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/configuracoes', label: 'Configurações', icon: Settings, requireRoles: ['admin', 'gestor'] },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ user }) {
   const pathname = usePathname()
+  
+  // Nível do usuário logado
+  const userRole = user?.role || 'membro'
+
+  // Filtra itens de acordo com a role
+  const filteredNavItems = navItems.filter(item => {
+    if (item.adminOnly && userRole !== 'admin') return false
+    if (item.requireRoles && !item.requireRoles.includes(userRole)) return false
+    return true
+  })
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-white border-r border-gray-100 flex flex-col z-40">
@@ -31,7 +41,7 @@ export default function Sidebar() {
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 bg-[#1E4FD8] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg leading-none">A</span>
+            <span className="text-white font-bold text-lg leading-none">T</span>
           </div>
           <div>
             <h1 className="text-[15px] font-semibold text-gray-900 leading-tight">
@@ -57,7 +67,7 @@ export default function Sidebar() {
 
       {/* Navegação */}
       <nav className="flex-1 px-3 space-y-0.5">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
           const Icon = item.icon
 

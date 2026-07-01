@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       <Toaster position="bottom-right" />
-      <Sidebar />
+      <Sidebar user={user} />
       <TopBar user={user} />
       <NewTicketModal />
 
