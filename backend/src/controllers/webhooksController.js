@@ -80,17 +80,61 @@ const testarWebhook = async (req, res) => {
       }
     }
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payloadMock)
-    })
-
-    if (!response.ok) {
-       return res.status(response.status).json({ error: `Servidor destino retornou HTTP ${response.status}` })
+    let logRecord = {
+      evento,
+      url,
+      sucesso: false,
+      status_http: null,
+      erro: null
     }
 
-    return res.status(200).json({ success: true, message: 'Disparo de teste realizado com sucesso' })
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadMock)
+      })
+
+      logRecord.status_http = response.status
+      if (!response.ok) {
+         logRecord.erro = `HTTP ${response.status}`
+         await supabase.from('webhook_logs').insert(logRecord)
+         return res.status(response.status).json({ error: `Servidor destino retornou HTTP ${response.status}` })
+      }
+
+      logRecord.sucesso = true
+      await supabase.from('webhook_logs').insert(logRecord)
+      return res.status(200).json({ success: true, message: 'Disparo de teste realizado com sucesso' })
+    } catch (e) {
+      logRecord.erro = e.message
+      await supabase.from('webhook_logs').insert(logRecord)
+      return res.status(500).json({ error: `Erro de conexão: ${e.message}` })
+    }
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+}
+
+/**
+ * GET /api/webhooks/:evento/logs
+ * Retorna os últimos 50 disparos (logs) de um evento.
+ */
+const listarLogs = async (req, res) => {
+  try {
+    const { evento } = req.params
+    const { data, error } = await supabase
+      .from('webhook_logs')
+      .select('*')
+      .eq('evento', evento)
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error) {
+      return res.status(500).json({ error: error.message })
+    }
+    
+    return res.status(200).json(data || [])
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }
@@ -99,5 +143,6 @@ const testarWebhook = async (req, res) => {
 module.exports = {
   listarWebhooks,
   atualizarWebhook,
-  testarWebhook
+  testarWebhook,
+  listarLogs
 }

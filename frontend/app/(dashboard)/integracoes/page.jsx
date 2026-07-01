@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plug, Save, Webhook, Lock, Play } from 'lucide-react'
-import { getWebhooks, atualizarWebhook, testarWebhook } from '@/lib/api'
+import { Plug, Save, Webhook, Lock, Play, Activity } from 'lucide-react'
+import { getWebhooks, atualizarWebhook, testarWebhook, getWebhookLogs } from '@/lib/api'
+import toast from 'react-hot-toast'
 
 export default function IntegracoesPage() {
   const [url, setUrl] = useState('')
@@ -10,7 +11,17 @@ export default function IntegracoesPage() {
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [feedback, setFeedback] = useState(null)
+  const [logs, setLogs] = useState([])
+  const [showLogs, setShowLogs] = useState(false)
+
+  const carregarLogs = async () => {
+    try {
+      const data = await getWebhookLogs('ticket_resolvido')
+      setLogs(data)
+    } catch (e) {
+      console.error('Erro ao carregar logs', e)
+    }
+  }
 
   useEffect(() => {
     getWebhooks().then(data => {
@@ -24,37 +35,37 @@ export default function IntegracoesPage() {
       console.error(e)
       setLoading(false)
     })
+
+    carregarLogs()
   }, [])
 
   const handleSave = async () => {
     if (!url.trim()) return
     setSaving(true)
-    setFeedback(null)
     try {
       await atualizarWebhook('ticket_resolvido', { url, ativo })
-      setFeedback({ type: 'success', message: 'Configurações salvas!' })
+      toast.success('Configurações salvas!')
     } catch (err) {
       console.error(err)
-      setFeedback({ type: 'error', message: 'Erro ao salvar.' })
+      toast.error(err.message || 'Erro ao salvar.')
     } finally {
       setSaving(false)
-      setTimeout(() => setFeedback(null), 3000)
     }
   }
 
   const handleTest = async () => {
     if (!url.trim()) return
     setTesting(true)
-    setFeedback(null)
     try {
       await testarWebhook('ticket_resolvido', url)
-      setFeedback({ type: 'success', message: 'Teste enviado com sucesso!' })
+      toast.success('Teste enviado com sucesso!')
+      carregarLogs()
     } catch (err) {
       console.error(err)
-      setFeedback({ type: 'error', message: 'Erro ao conectar com a URL.' })
+      toast.error(err.message || 'Erro ao testar webhook.')
+      carregarLogs()
     } finally {
       setTesting(false)
-      setTimeout(() => setFeedback(null), 4000)
     }
   }
 
@@ -69,12 +80,6 @@ export default function IntegracoesPage() {
           <p className="text-gray-500 text-sm mt-1">Conecte o TrackDesk a serviços externos via Webhooks.</p>
         </div>
       </div>
-
-      {feedback && (
-        <div className={`mb-6 p-4 rounded-lg text-sm font-medium ${feedback.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-          {feedback.message}
-        </div>
-      )}
 
       <div className="space-y-6">
         {/* Gatilho 1: Ticket Resolvido (Ativo) */}
@@ -133,6 +138,59 @@ export default function IntegracoesPage() {
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
+        </div>
+
+        {/* Logs do Webhook */}
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div 
+            className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+            onClick={() => setShowLogs(!showLogs)}
+          >
+            <div className="flex items-center gap-2">
+              <Activity size={18} className="text-gray-500" />
+              <h3 className="text-sm font-bold text-gray-700">Histórico de Disparos</h3>
+            </div>
+            <span className="text-xs text-gray-500 font-medium">
+              {showLogs ? 'Ocultar' : 'Mostrar'} últimos disparos
+            </span>
+          </div>
+          
+          {showLogs && (
+            <div className="overflow-x-auto max-h-80 custom-scrollbar">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-white sticky top-0 border-b border-gray-100 shadow-sm">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold text-gray-600">Data/Hora</th>
+                    <th className="px-4 py-3 font-semibold text-gray-600">Status</th>
+                    <th className="px-4 py-3 font-semibold text-gray-600">Erro</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {logs.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="px-4 py-6 text-center text-gray-500">Nenhum disparo registrado ainda.</td>
+                    </tr>
+                  ) : (
+                    logs.map(log => (
+                      <tr key={log.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-600">
+                          {new Date(log.created_at).toLocaleString('pt-BR')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${log.sucesso ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {log.sucesso ? 'OK' : 'ERRO'} {log.status_http ? `(${log.status_http})` : ''}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs max-w-xs truncate" title={log.erro}>
+                          {log.erro || '-'}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Gatilho 2: Novo Ticket (Em Breve) */}

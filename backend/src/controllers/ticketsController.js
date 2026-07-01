@@ -92,7 +92,9 @@ const atualizarStatus = async (req, res) => {
       return res.status(500).json({ error: error.message })
     }
 
-    // Webhook n8n para status Resolvido (disparo assíncrono/fire-and-forget)
+    // Webhook n8n para status Resolvido (disparo síncrono para log e toast)
+    let webhookResult = null
+
     if (status === 'Resolvido') {
       const { data: webhook } = await supabase
         .from('webhooks')
@@ -120,19 +122,44 @@ const atualizarStatus = async (req, res) => {
           }
         }
 
+        let logRecord = {
+          evento: 'ticket_resolvido',
+          url: webhook.url,
+          sucesso: false,
+          status_http: null,
+          erro: null
+        }
+
         if (typeof fetch !== 'undefined') {
-          fetch(webhook.url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-          .then(() => console.log(`[Webhook] Disparado para n8n: Ticket ${data.id}`))
-          .catch(e => console.error(`[Webhook Erro] falha ao enviar pro n8n: ${e.message}`))
+          try {
+            const response = await fetch(webhook.url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            })
+
+            logRecord.status_http = response.status
+            if (response.ok) {
+              logRecord.sucesso = true
+              webhookResult = { success: true }
+              console.log(`[Webhook] Disparado para n8n: Ticket ${data.id}`)
+            } else {
+              logRecord.erro = `HTTP ${response.status}`
+              webhookResult = { success: false, error: logRecord.erro }
+              console.error(`[Webhook Erro] HTTP ${response.status}`)
+            }
+          } catch (e) {
+            logRecord.erro = e.message
+            webhookResult = { success: false, error: logRecord.erro }
+            console.error(`[Webhook Erro] Falha: ${e.message}`)
+          }
+          
+          await supabase.from('webhook_logs').insert(logRecord)
         }
       }
     }
 
-    return res.status(200).json(data)
+    return res.status(200).json({ ...data, webhook_result: webhookResult })
   } catch (err) {
     return res.status(500).json({ error: err.message })
   }

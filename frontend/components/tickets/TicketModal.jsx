@@ -34,6 +34,8 @@ const getStatusStyles = (status) => {
   return 'bg-[#F3F4F6] text-[#6B7280]' // Novo ou Backlog
 }
 
+import toast from 'react-hot-toast'
+
 export default function TicketModal({ ticket, colunas, onClose, onTicketUpdate }) {
   const [comentario, setComentario] = useState('')
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
@@ -50,14 +52,22 @@ export default function TicketModal({ ticket, colunas, onClose, onTicketUpdate }
     setIsUpdatingStatus(true)
     try {
       // 1. Atualiza API
-      await updateTicketStatus(ticket.id, novoStatus)
+      const res = await updateTicketStatus(ticket.id, novoStatus)
+      if (res && res.webhook_result) {
+        if (res.webhook_result.success) {
+          toast.success('Cliente notificado com sucesso')
+        } else {
+          toast.error('Erro ao notificar cliente')
+        }
+      }
+      
       // 2. Avisa o KanbanBoard para atualizar o state global otimisticamente
       if (onTicketUpdate) {
         onTicketUpdate(ticket.id, novoStatus)
       }
     } catch (err) {
       console.error('Erro ao atualizar status do ticket no modal', err)
-      alert('Falha ao atualizar status. Tente novamente.')
+      toast.error('Falha ao atualizar status.')
     } finally {
       setIsUpdatingStatus(false)
     }
