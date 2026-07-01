@@ -83,19 +83,6 @@ export default function TicketCard({ ticket, index, onClick }) {
             {ticket.titulo}
           </h3>
 
-          {/* Resumo IA */}
-          <div className="bg-[#F8FAFC] rounded-lg p-3 mt-1">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <span className="text-[#8B5CF6] text-xs">✦</span>
-              <span className="text-[10px] font-bold text-[#8B5CF6] uppercase tracking-wider">
-                Resumo da IA
-              </span>
-            </div>
-            <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
-              {ticket.descricao}
-            </p>
-          </div>
-
           {/* Footer do Card */}
           <div className="flex items-center justify-between mt-1">
             <div className="flex items-center gap-2">
