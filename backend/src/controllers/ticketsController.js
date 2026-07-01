@@ -165,8 +165,32 @@ const atualizarStatus = async (req, res) => {
   }
 }
 
+/**
+ * DELETE /api/tickets/:id
+ * Exclui um ticket do banco de dados.
+ */
+const deletarTicket = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const { error } = await supabase
+      .from('tickets')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json({ success: true, message: 'Ticket excluído com sucesso' })
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+}
+
 module.exports = {
   criarTicket,
   listarTickets,
   atualizarStatus,
+  deletarTicket
 }

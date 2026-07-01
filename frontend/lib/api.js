@@ -22,6 +22,13 @@ export const updateTicketStatus = (id, status) => fetch(`${API_URL}/api/tickets/
   body: JSON.stringify({ status })
 }).then(r => r.json())
 
+export const deletarTicket = (id) => fetch(`${API_URL}/api/tickets/${id}`, {
+  method: 'DELETE'
+}).then(async r => {
+  if (!r.ok) throw new Error('Erro ao excluir chamado')
+  return r.json()
+})
+
 export const criarColuna = (dados) => fetch(`${API_URL}/api/colunas`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
