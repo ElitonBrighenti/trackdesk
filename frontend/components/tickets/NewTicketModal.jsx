@@ -42,7 +42,8 @@ export default function NewTicketModal() {
     try {
       await criarTicket({
         ...formData,
-        origem: 'manual' // Define origem como manual ao invés de whatsapp
+        origem: 'manual',
+        status: 'Novo'
       })
       toast.success('Chamado criado com sucesso!')
       

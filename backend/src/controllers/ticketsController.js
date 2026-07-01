@@ -23,7 +23,7 @@ const criarTicket = async (req, res) => {
       descricao: payload.descricao,
       categoria: payload.categoria,
       prioridade: payload.prioridade,
-      status: payload.status ?? 'Backlog',
+      status: payload.status ?? 'Novo',
       responsavel: payload.responsavel ?? null,
       nome: payload.nome,
       contato: payload.contato,
