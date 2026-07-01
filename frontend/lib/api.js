@@ -72,3 +72,15 @@ export const getWebhookLogs = (evento) => fetch(`${API_URL}/api/webhooks/${event
   }
   return r.json()
 })
+
+// Perfis / Equipe
+export const getProfiles = () => fetch(`${API_URL}/api/profiles`).then(r => r.json())
+
+export const updateRole = (id, role) => fetch(`${API_URL}/api/profiles/${id}/role`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ role })
+}).then(async r => {
+  if (!r.ok) throw new Error('Erro ao atualizar nível')
+  return r.json()
+})
