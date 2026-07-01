@@ -12,4 +12,7 @@ router.get('/', ticketsController.listarTickets)
 // PATCH /api/tickets/:id/status — Atualiza status (Kanban drag)
 router.patch('/:id/status', ticketsController.atualizarStatus)
 
+// DELETE /api/tickets/:id — Exclui ticket
+router.delete('/:id', ticketsController.deletarTicket)
+
 module.exports = router

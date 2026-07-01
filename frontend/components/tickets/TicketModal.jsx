@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X, User, Mail, Phone, Calendar, Tag, MessageSquare, Send } from 'lucide-react'
-import { updateTicketStatus } from '@/lib/api'
+import { X, User, Mail, Phone, Calendar, Tag, MessageSquare, Send, Trash2, AlertTriangle } from 'lucide-react'
+import { updateTicketStatus, deletarTicket } from '@/lib/api'
 
 // Helper para formatar a data
 const formatDate = (dateString) => {
@@ -39,6 +39,11 @@ import toast from 'react-hot-toast'
 export default function TicketModal({ ticket, colunas, onClose, onTicketUpdate }) {
   const [comentario, setComentario] = useState('')
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  
+  // Deletar state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   if (!ticket) return null
 
@@ -79,6 +84,25 @@ export default function TicketModal({ ticket, colunas, onClose, onTicketUpdate }
     setComentario('')
   }
 
+  const handleDelete = async () => {
+    if (deleteConfirmText !== ticket.id.toString()) {
+      toast.error(`Digite o número ${ticket.id} para confirmar.`)
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await deletarTicket(ticket.id)
+      toast.success('Chamado excluído permanentemente.')
+      onClose()
+      window.dispatchEvent(new CustomEvent('ticket-created')) // Força o Kanban a recarregar
+    } catch (err) {
+      toast.error('Falha ao excluir chamado.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div 
       className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
@@ -107,17 +131,56 @@ export default function TicketModal({ ticket, colunas, onClose, onTicketUpdate }
               {ticket.titulo}
             </h2>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors shrink-0"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button 
+              onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+              className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-colors"
+              title="Excluir Chamado"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Corpo do Modal (Scrollable) */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-8">
           
+          {/* Zona de Perigo - Confirmação de Exclusão */}
+          {showDeleteConfirm && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 animate-in slide-in-from-top-2">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={20} className="text-red-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-red-900">Excluir este chamado permanentemente?</h3>
+                  <p className="text-xs text-red-700 mt-1 mb-3">
+                    Essa ação não pode ser desfeita. Digite o número do ticket <strong>{ticket.id}</strong> para confirmar a exclusão.
+                  </p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder={ticket.id.toString()}
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      className="w-24 text-sm px-3 py-1.5 border border-red-300 rounded outline-none focus:border-red-500 bg-white"
+                    />
+                    <button 
+                      onClick={handleDelete}
+                      disabled={isDeleting || deleteConfirmText !== ticket.id.toString()}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs font-bold px-4 py-1.5 rounded transition-colors"
+                    >
+                      {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Informações do Cliente */}
           <section>
             <h3 className="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">
