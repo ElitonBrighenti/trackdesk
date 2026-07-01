@@ -19,7 +19,7 @@ const navItems = [
   { href: '/kanban', label: 'Kanban', icon: Kanban },
   { href: '/integracoes', label: 'Integrações', icon: Plug, adminOnly: true },
   { href: '/base-conhecimento', label: 'Base de Conhecimento', icon: BookOpen },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings, requireRoles: ['admin', 'gestor'] },
+  { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
 export default function Sidebar({ user }) {
