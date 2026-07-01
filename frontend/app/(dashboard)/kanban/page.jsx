@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Filter } from 'lucide-react'
+import { Filter, Download } from 'lucide-react'
 import KanbanBoard from '@/components/tickets/KanbanBoard'
 import { getColunas, getTickets } from '@/lib/api'
 
@@ -21,6 +21,11 @@ export default function KanbanPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Filtros de Data
+  const [filterPeriod, setFilterPeriod] = useState('todos') // 'todos', 'hoje', '7d', '30d', 'custom'
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
+
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -39,6 +44,12 @@ export default function KanbanPage() {
 
   useEffect(() => {
     fetchData()
+    
+    // Escuta evento de novo chamado criado no modal global
+    const handleTicketCreated = () => fetchData()
+    window.addEventListener('ticket-created', handleTicketCreated)
+    
+    return () => window.removeEventListener('ticket-created', handleTicketCreated)
   }, [])
 
   // Extrair responsáveis únicos dos tickets (por nome)
@@ -53,6 +64,81 @@ export default function KanbanPage() {
     'bg-green-100 text-green-600',
     'bg-purple-100 text-purple-600'
   ]
+
+  // Lógica de Filtro
+  const filteredTickets = tickets.filter(t => {
+    if (filterPeriod === 'todos') return true
+    
+    const ticketDate = new Date(t.created_at)
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+    
+    if (filterPeriod === 'hoje') {
+      const startOfToday = new Date()
+      startOfToday.setHours(0, 0, 0, 0)
+      return ticketDate >= startOfToday && ticketDate <= today
+    }
+    if (filterPeriod === '7d') {
+      const past7 = new Date()
+      past7.setDate(today.getDate() - 7)
+      past7.setHours(0, 0, 0, 0)
+      return ticketDate >= past7 && ticketDate <= today
+    }
+    if (filterPeriod === '30d') {
+      const past30 = new Date()
+      past30.setDate(today.getDate() - 30)
+      past30.setHours(0, 0, 0, 0)
+      return ticketDate >= past30 && ticketDate <= today
+    }
+    if (filterPeriod === 'custom') {
+      if (!customStartDate || !customEndDate) return true
+      
+      const start = new Date(customStartDate)
+      // Resolve fuso horário ao instanciar de YYYY-MM-DD
+      start.setHours(0, 0, 0, 0)
+      start.setDate(start.getDate() + 1) // Ajuste UTC->Local
+      
+      const end = new Date(customEndDate)
+      end.setHours(23, 59, 59, 999)
+      end.setDate(end.getDate() + 1)
+
+      return ticketDate >= start && ticketDate <= end
+    }
+    return true
+  })
+
+  // Exportar para CSV
+  const handleExportCSV = () => {
+    if (filteredTickets.length === 0) {
+      alert('Não há chamados para exportar nesse período.')
+      return
+    }
+
+    const headers = ['ID', 'Status', 'Prioridade', 'Categoria', 'Cliente', 'Contato', 'Email', 'Data de Criação', 'Título']
+    const csvContent = [
+      headers.join(','),
+      ...filteredTickets.map(t => [
+        t.id,
+        t.status,
+        t.prioridade || 'Normal',
+        t.categoria || 'Não classificada',
+        `"${(t.nome || '').replace(/"/g, '""')}"`,
+        t.contato || '',
+        t.email || '',
+        new Date(t.created_at).toLocaleString('pt-BR'),
+        `"${(t.titulo || '').replace(/"/g, '""')}"`
+      ].join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `chamados_${filterPeriod}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -86,10 +172,52 @@ export default function KanbanPage() {
             )}
           </div>
 
-          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-            <Filter size={16} />
-            Filtros
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Filtros de Data */}
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+              <div className="flex items-center px-2 text-gray-500">
+                <Filter size={16} />
+              </div>
+              <select 
+                className="bg-transparent text-sm text-gray-700 font-medium py-1 pr-4 outline-none border-none cursor-pointer"
+                value={filterPeriod}
+                onChange={e => setFilterPeriod(e.target.value)}
+              >
+                <option value="todos">Todos os dias</option>
+                <option value="hoje">Hoje</option>
+                <option value="7d">Últimos 7 dias</option>
+                <option value="30d">Últimos 30 dias</option>
+                <option value="custom">Personalizado</option>
+              </select>
+
+              {filterPeriod === 'custom' && (
+                <div className="flex items-center gap-2 pl-2 border-l border-gray-200 pr-1">
+                  <input 
+                    type="date" 
+                    className="text-sm bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none text-gray-600 focus:border-blue-500"
+                    value={customStartDate}
+                    onChange={e => setCustomStartDate(e.target.value)}
+                  />
+                  <span className="text-gray-400 text-xs font-medium">até</span>
+                  <input 
+                    type="date" 
+                    className="text-sm bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none text-gray-600 focus:border-blue-500"
+                    value={customEndDate}
+                    onChange={e => setCustomEndDate(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Exportar */}
+            <button 
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 bg-[#1E4FD8] hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
+            >
+              <Download size={16} />
+              Exportar CSV
+            </button>
+          </div>
         </div>
       </div>
 
@@ -97,7 +225,7 @@ export default function KanbanPage() {
       <div className="flex-1">
         <KanbanBoard 
           initialColunas={colunas} 
-          initialTickets={tickets} 
+          initialTickets={filteredTickets} 
           loading={loading} 
           error={error} 
           onRetry={fetchData} 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getUser } from '@/lib/auth'
 import Sidebar from '@/components/layout/Sidebar'
 import TopBar from '@/components/layout/TopBar'
-
+import NewTicketModal from '@/components/tickets/NewTicketModal'
 import { Toaster } from 'react-hot-toast'
 
 export default function DashboardLayout({ children }) {
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
   }, [router])
 
   if (loading) {
-    return null // Retorna null enquanto verifica a autenticação para evitar flash de tela não autenticada
+    return null
   }
 
   return (
@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }) {
       <Toaster position="bottom-right" />
       <Sidebar />
       <TopBar user={user} />
+      <NewTicketModal />
 
       {/* Área de conteúdo principal */}
       <main className="ml-[220px] mt-[56px] p-6">
