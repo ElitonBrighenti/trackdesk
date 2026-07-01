@@ -44,6 +44,12 @@ export default function KanbanPage() {
 
   useEffect(() => {
     fetchData()
+    
+    // Escuta evento de novo chamado criado no modal global
+    const handleTicketCreated = () => fetchData()
+    window.addEventListener('ticket-created', handleTicketCreated)
+    
+    return () => window.removeEventListener('ticket-created', handleTicketCreated)
   }, [])
 
   // Extrair responsáveis únicos dos tickets (por nome)

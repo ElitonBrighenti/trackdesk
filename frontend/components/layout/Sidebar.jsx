@@ -47,6 +47,7 @@ export default function Sidebar() {
       {/* Botão Novo Chamado */}
       <div className="px-4 pb-4">
         <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-new-ticket'))}
           className="w-full flex items-center justify-center gap-2 bg-[#1E4FD8] hover:bg-[#1a45c0] text-white text-sm font-medium py-2.5 rounded-lg transition-colors cursor-pointer"
         >
           <Plus size={16} strokeWidth={2.5} />

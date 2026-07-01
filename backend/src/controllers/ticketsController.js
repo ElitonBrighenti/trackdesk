@@ -18,7 +18,7 @@ const criarTicket = async (req, res) => {
 
     const ticket = {
       sessao: randomUUID(),
-      origem: 'whatsapp',
+      origem: payload.origem || 'whatsapp',
       titulo: payload.titulo,
       descricao: payload.descricao,
       categoria: payload.categoria,

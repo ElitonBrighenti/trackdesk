@@ -2,6 +2,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://trackdesk-production
 
 export const getTickets = () => fetch(`${API_URL}/api/tickets`).then(r => r.json())
 
+export const criarTicket = (dados) => fetch(`${API_URL}/api/tickets`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(dados)
+}).then(async r => {
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.error || 'Erro ao criar chamado')
+  }
+  return r.json()
+})
+
 export const getColunas = () => fetch(`${API_URL}/api/colunas`).then(r => r.json())
 
 export const updateTicketStatus = (id, status) => fetch(`${API_URL}/api/tickets/${id}/status`, {
